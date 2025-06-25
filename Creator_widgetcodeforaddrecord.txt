@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Vehicle Details Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fa;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border 0.3s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: #007BFF;
+      outline: none;
+    }
+
+    input[type="submit"] {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      padding: 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #1e40af;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      .form-container {
+        padding: 20px;
+      }
+    }
+  </style>
+  <script src="https://js.zohostatic.in/creator/widgets/version/1.0/widgetsdk-min.js"></script>
+</head>
+
+<body>
+  <div class="form-container">
+    <h2>Vehicle Details</h2>
+    <form id="vehicleForm">
+      <label for="vehicleModel">Vehicle Model</label>
+      <input type="text" id="vehicleModel" name="vehicle_model" required>
+
+      <label for="status">Status</label>
+      <select id="status" name="status" required>
+        <option value="" disabled selected>Select status</option>
+        <option value="Available">Available</option>
+        <option value="Not Available">Not Available</option>
+      </select>
+      <label for="driver">Driver</label>
+            <select id="driver" name="driver" required>
+                <option value="">Select Driver</option>
+            </select>
+
+      <label for="emiAmount">EMI Amount (₹)</label>
+      <input type="number" id="emiAmount" name="emi_amount" min="0" step="0.01" required>
+
+      <label for="maintenanceCost">Maintenance Cost (₹)</label>
+      <input type="number" id="maintenanceCost" name="maintenance_cost" min="0" step="0.01" required>
+
+      <input type="submit" value="Submit" id="submit">
+    </form>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      ZOHO.CREATOR.init().then(function () {
+
+        ZOHO.CREATOR.API.getAllRecords({
+          reportName: "All_Drivers", // Make sure this is your Driver report link name
+          page: 1,
+          pageSize: 200
+        }).then(function (response) {
+          if (response.data && response.data.length > 0) {
+            const driverSelect = document.getElementById("driver");
+            response.data.forEach(function (driver) {
+              // Adjust the field names as per your app's response structure
+              let driverId = driver.ID || (driver.Driver_Name && driver.Driver_Name.ID);
+              let driverName = driver.Driver_Name && driver.Driver_Name.display_value
+                ? driver.Driver_Name.display_value
+                : (driver.Driver_Name || driver.Name || "Driver_Name");
+              if (driverId && driverName) {
+                const option = document.createElement("option");
+                option.value = driverId;
+                option.text = driverName;
+                driverSelect.appendChild(option);
+              }
+            });
+          }
+        });
+
+
+        document.getElementById("vehicleForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const vehicleModel = document.getElementById("vehicleModel").value.trim();
+          const status = document.getElementById("status").value;
+          const emiAmount = document.getElementById("emiAmount").value;
+          const maintenanceCost = document.getElementById("maintenanceCost").value;
+
+          const config = {
+            appName: "indian-animation",
+            formName: "Vehicle",
+            data: {
+              "data": {
+                "Vehicle_Model": vehicleModel,
+                "Status": status,
+                "EMI_Amount": emiAmount,
+                "Maintenance_Cost": maintenanceCost,
+                "Driver": document.getElementById("driver").value
+              }
+            }
+          };
+
+          ZOHO.CREATOR.API.addRecord(config).then(function (response) {
+            if (response.code === 3000) {
+              alert('Vehicle details submitted successfully!');
+              document.getElementById("vehicleForm").reset();
+            } else {
+              alert('Failed to submit vehicle details.');
+              console.error(response);
+            }
+          });
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
